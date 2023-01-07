@@ -7,7 +7,7 @@ Highly configurable translation plugin for neovim.
 - multiple output
   - float_win: output in float window
   - clipboard: copy to clipboard
-  - insert: insert to current cursor position
+  - insert: insert at current cursor position
   - notify: notify with vim.notify
 - multiple translate engine: invoke any translation engine via shell command
 - async job: never block your work
