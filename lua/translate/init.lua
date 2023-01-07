@@ -74,6 +74,9 @@ end
 local setup = function(new_config)
 	config_mod = vim.tbl_deep_extend("force", config_mod, new_config or {})
 	create_user_command(config_mod)
+	vim.keymap.set("n", config_mod.output.float.enter_key, function()
+		output_mod.enter_float_win()
+	end, {})
 end
 
 return {

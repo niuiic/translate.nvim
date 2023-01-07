@@ -2,11 +2,13 @@ local config = require("translate.config")
 
 local winnr
 local bufnr
+local in_win = false
 local close_win = function()
 	-- if window is not closed by function close_win, winnr will still exist but vim.api.nvim_win_close will fail
 	pcall(vim.api.nvim_win_close, winnr, true)
 	bufnr = nil
 	winnr = nil
+	in_win = false
 end
 local is_win_open = function()
 	return winnr ~= nil
@@ -34,11 +36,23 @@ local open_float_win = function(args)
 	})
 end
 
+local enter_float_win = function()
+	in_win = true
+	pcall(vim.api.nvim_set_current_win, winnr)
+end
+
 vim.api.nvim_create_autocmd("CursorMoved", {
 	pattern = "*",
 	callback = function()
 		if config.output.float.close_on_cursor_move and is_win_open() then
-			close_win()
+			if in_win then
+				local cur_win = vim.api.nvim_get_current_win()
+				if cur_win ~= winnr then
+					in_win = false
+				end
+			else
+				close_win()
+			end
 		end
 	end,
 })
@@ -99,4 +113,5 @@ return {
 	output_notify = output_notify,
 	output_to_clipboard = output_to_clipboard,
 	output_insert = output_insert,
+	enter_float_win = enter_float_win,
 }
