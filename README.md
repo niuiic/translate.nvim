@@ -38,31 +38,31 @@ Highly configurable translation plugin for neovim.
 require("translate").setup({
 	output = {
 		float = {
-            -- max_width of float window
+			-- max_width of float window
 			max_width = 40,
-            -- max_height of float window
+			-- max_height of float window
 			max_height = 5,
-            -- whether close float window on cursor move
+			-- whether close float window on cursor move
 			close_on_cursor_move = true,
-            -- key to enter float window
+			-- key to enter float window
 			enter_key = "T",
 		},
 	},
 	translate = {
 		{
-            -- use :TransToZH to start this job
+			-- use :TransToZH to start this job
 			cmd = "TransToZH",
-            -- shell command
-            -- translate-shell is used here
+			-- shell command
+			-- translate-shell is used here
 			command = "trans",
-            -- shell command args
+			-- shell command args
 			args = function(trans_source)
-            -- trans_source is the text you want to translate
+				-- trans_source is the text you want to translate
 				return {
 					"-b",
 					"-e",
 					"google",
-                    -- use proxy
+					-- use proxy
 					-- "-x",
 					-- "http://127.0.0.1:10025",
 					"-t",
@@ -70,14 +70,14 @@ require("translate").setup({
 					trans_source,
 				}
 			end,
-            -- how to get translate source
-            -- selection | input
+			-- how to get translate source
+			-- selection | input
 			input = "selection",
-            -- how to output translate result
-            -- float_win | notify | clipboard | insert
+			-- how to output translate result
+			-- float_win | notify | clipboard | insert
 			output = { "float_win" },
-            -- filter translate source
-            -- for example, you may need to filter `--` in a lua comment
+			-- filter translate source
+			-- for example, you may need to filter `--` in a lua comment
 			filter = function(trans_source)
 				return trans_source
 			end,
