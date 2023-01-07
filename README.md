@@ -104,7 +104,7 @@ require("translate").setup({
 
 - keymap
 
-**Notice**: if input = "selection", <c-u> is required when set keymap.
+Notice: if input = "selection", `<c-u>` is required when set keymap.
 
 ```lua
 vim.keymap.set("v", "<C-t>", ":<c-u>TransToZH<CR>", { silent = true })
