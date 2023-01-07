@@ -12,7 +12,7 @@ Highly configurable translation plugin for neovim.
 - multiple translate engine: invoke any translation engine via shell command
 - async job: never block your work
 
-<img src="https://github.com/niuiic/assets/blob/main/translate.nvim/usage.mp4" />
+<img src="https://github.com/niuiic/assets/blob/main/translate.nvim/usage.gif" />
 
 ## Config
 
