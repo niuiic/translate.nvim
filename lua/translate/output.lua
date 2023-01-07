@@ -1,0 +1,105 @@
+local config = require("translate.config")
+
+local winnr
+local bufnr
+local close_win = function()
+	-- if window is not closed by function close_win, winnr will still exist but vim.api.nvim_win_close will fail
+	pcall(vim.api.nvim_win_close, winnr, true)
+	bufnr = nil
+	winnr = nil
+end
+local is_win_open = function()
+	return winnr ~= nil
+end
+
+---@param args {width: number, height: number, row: number, col: number}
+local open_float_win = function(args)
+	if is_win_open() then
+		close_win()
+	end
+	bufnr = vim.api.nvim_create_buf(false, true)
+	local win_id = vim.fn.win_getid()
+	winnr = vim.api.nvim_open_win(bufnr, false, {
+		relative = "win",
+		win = win_id,
+		width = args.width,
+		height = args.height,
+		bufpos = {
+			args.row,
+			args.col,
+		},
+		border = "single",
+		zindex = 1,
+		style = "minimal",
+	})
+end
+
+vim.api.nvim_create_autocmd("CursorMoved", {
+	pattern = "*",
+	callback = function()
+		if config.output.float.close_on_cursor_move and is_win_open() then
+			close_win()
+		end
+	end,
+})
+
+---@param content string
+---@param cursor_pos {row: number, col: number})
+local output_in_float_win = function(content, cursor_pos)
+	local str_len = string.len(content)
+	local height, width
+	local max_width = config.output.float.max_width
+	local max_height = config.output.float.max_height
+	local text_list = {}
+	if str_len <= max_width then
+		height = 1
+		width = str_len
+		content = string.gsub(content, "\n", "")
+		text_list = {
+			content,
+		}
+	else
+		width = max_width
+		height = math.ceil(str_len / max_width)
+		for i = 1, height, 1 do
+			local str = string.sub(content, (i - 1) * width, i * width - 1)
+			str = string.gsub(str, "\n", "")
+			table.insert(text_list, str)
+		end
+		if height > max_height then
+			height = max_height
+		end
+	end
+	open_float_win({
+		height = height,
+		width = width,
+		col = cursor_pos.col,
+		row = cursor_pos.row - 1,
+	})
+	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, text_list)
+end
+
+local output_notify = function(content)
+	vim.notify(content, vim.log.levels.INFO, {
+		title = "Translate",
+	})
+end
+
+local output_to_clipboard = function(content)
+	vim.fn.setreg("+", content)
+end
+
+---@param content string
+---@param cursor_pos {row: number, col: number})
+local output_insert = function(content, cursor_pos)
+	local line = vim.api.nvim_buf_get_lines(0, cursor_pos.row - 1, cursor_pos.row, false)[1]
+	local new_line = line:sub(0, cursor_pos.col) .. content .. line:sub(cursor_pos.col + 1)
+	vim.api.nvim_buf_set_lines(0, cursor_pos.row - 1, cursor_pos.row, false, { new_line })
+end
+
+return {
+	output_in_float_win = output_in_float_win,
+	output_notify = output_notify,
+	output_to_clipboard = output_to_clipboard,
+	output_insert = output_insert,
+}
