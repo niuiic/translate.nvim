@@ -25,6 +25,7 @@ local spawn = function(cmd, args, on_exit, on_err)
 		vim.schedule_wrap(function(err, data)
 			if job_running then
 				on_exit(err, data)
+				job_running = false
 			end
 		end)
 	)
@@ -33,6 +34,7 @@ local spawn = function(cmd, args, on_exit, on_err)
 		vim.schedule_wrap(function(err, data)
 			if job_running then
 				on_err(err, data)
+				job_running = false
 			end
 		end)
 	)
