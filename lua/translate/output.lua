@@ -46,26 +46,23 @@ vim.api.nvim_create_autocmd("CursorMoved", {
 ---@param content string
 ---@param cursor_pos {row: number, col: number})
 local output_in_float_win = function(content, cursor_pos)
-	local str_len = string.len(content)
+	if content == nil then
+		return
+	end
+	content = string.gsub(content, "\n", "")
+	local str_len = vim.fn.strdisplaywidth(content)
+	if str_len == 0 then
+		return
+	end
 	local height, width
 	local max_width = config.output.float.max_width
 	local max_height = config.output.float.max_height
-	local text_list = {}
 	if str_len <= max_width then
 		height = 1
 		width = str_len
-		content = string.gsub(content, "\n", "")
-		text_list = {
-			content,
-		}
 	else
 		width = max_width
 		height = math.ceil(str_len / max_width)
-		for i = 1, height, 1 do
-			local str = string.sub(content, (i - 1) * width, i * width - 1)
-			str = string.gsub(str, "\n", "")
-			table.insert(text_list, str)
-		end
 		if height > max_height then
 			height = max_height
 		end
@@ -76,7 +73,7 @@ local output_in_float_win = function(content, cursor_pos)
 		col = cursor_pos.col,
 		row = cursor_pos.row - 1,
 	})
-	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, text_list)
+	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { content })
 end
 
 local output_notify = function(content)
@@ -93,7 +90,7 @@ end
 ---@param cursor_pos {row: number, col: number})
 local output_insert = function(content, cursor_pos)
 	local line = vim.api.nvim_buf_get_lines(0, cursor_pos.row - 1, cursor_pos.row, false)[1]
-	local new_line = line:sub(0, cursor_pos.col) .. content .. line:sub(cursor_pos.col + 1)
+	local new_line = line:sub(0, cursor_pos.col + 1) .. content .. line:sub(cursor_pos.col + 2)
 	vim.api.nvim_buf_set_lines(0, cursor_pos.row - 1, cursor_pos.row, false, { new_line })
 end
 
