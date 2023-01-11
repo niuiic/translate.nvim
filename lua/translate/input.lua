@@ -22,7 +22,12 @@ local user_input = function(cb)
 	end)
 end
 
+local read_clipboard = function()
+	return vim.fn.getreg("+")
+end
+
 return {
 	get_visual_selection = get_visual_selection,
 	user_input = user_input,
+	read_clipboard = read_clipboard,
 }

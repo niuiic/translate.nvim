@@ -67,6 +67,17 @@ local create_user_command = function(config)
 					trans(value.command, value.args(text), value.output)
 				end)
 			end, {})
+		elseif value.input == "clipboard" then
+			vim.api.nvim_create_user_command(value.cmd, function()
+				local text = input_mod.read_clipboard()
+				if text == nil then
+					vim.notify("no content in clipboard", vim.log.levels.ERROR, {
+						title = "Translate",
+					})
+					return
+				end
+				trans(value.command, value.args(text), value.output)
+			end, {})
 		end
 	end
 end

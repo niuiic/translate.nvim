@@ -71,7 +71,7 @@ require("translate").setup({
 				}
 			end,
 			-- how to get translate source
-			-- selection | input
+			-- selection | input | clipboard
 			input = "selection",
 			-- how to output translate result
 			-- float_win | notify | clipboard | insert
