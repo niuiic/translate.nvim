@@ -1,6 +1,6 @@
 local job = require("translate.job")
+local static = require("translate.static")
 local input_mod = require("translate.input")
-local config_mod = require("translate.config")
 local output_mod = require("translate.output")
 
 local fail_notify = function()
@@ -72,9 +72,9 @@ local create_user_command = function(config)
 end
 
 local setup = function(new_config)
-	config_mod = vim.tbl_deep_extend("force", config_mod, new_config or {})
-	create_user_command(config_mod)
-	vim.keymap.set("n", config_mod.output.float.enter_key, function()
+	static.config = vim.tbl_deep_extend("force", static.config, new_config or {})
+	create_user_command(static.config)
+	vim.keymap.set("n", static.config.output.float.enter_key, function()
 		output_mod.enter_float_win()
 	end, {})
 end

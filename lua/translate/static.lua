@@ -10,4 +10,4 @@ local config = {
 	translate = {},
 }
 
-return config
+return { config = config }
