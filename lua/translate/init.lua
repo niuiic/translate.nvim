@@ -21,7 +21,7 @@ local trans = function(cmd, args, output)
 	local cursor_pos = vim.api.nvim_win_get_cursor(0)
 
 	local on_exit = function(err, data)
-		if err ~= nil or data == "" then
+		if err ~= nil or data == nil or data == "" then
 			fail_notify()
 			return
 		end
