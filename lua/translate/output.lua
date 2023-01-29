@@ -1,4 +1,4 @@
-local static = require("translate.static")
+local config = require("translate.static").config
 
 local winnr
 local bufnr
@@ -44,7 +44,7 @@ end
 vim.api.nvim_create_autocmd("CursorMoved", {
 	pattern = "*",
 	callback = function()
-		if static.config.output.float.close_on_cursor_move and is_win_open() then
+		if config.output.float.close_on_cursor_move and is_win_open() then
 			if in_win then
 				local cur_win = vim.api.nvim_get_current_win()
 				if cur_win ~= winnr then
@@ -69,8 +69,8 @@ local output_in_float_win = function(content, cursor_pos)
 		return
 	end
 	local height, width
-	local max_width = static.config.output.float.max_width
-	local max_height = static.config.output.float.max_height
+	local max_width = config.output.float.max_width
+	local max_height = config.output.float.max_height
 	if str_len <= max_width then
 		height = 1
 		width = str_len
