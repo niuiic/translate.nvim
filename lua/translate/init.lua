@@ -51,9 +51,6 @@ local create_user_command = function(config)
 		if value.input == "selection" then
 			vim.api.nvim_create_user_command(value.cmd, function()
 				local text = input_mod.get_visual_selection()
-				if value.filter then
-					text = value.filter(text)
-				end
 				trans(value.command, value.args(text), value.output)
 			end, {
 				range = 0,
@@ -61,9 +58,6 @@ local create_user_command = function(config)
 		elseif value.input == "input" then
 			vim.api.nvim_create_user_command(value.cmd, function()
 				input_mod.user_input(function(text)
-					if value.filter then
-						text = value.filter(text)
-					end
 					trans(value.command, value.args(text), value.output)
 				end)
 			end, {})

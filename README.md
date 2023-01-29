@@ -67,6 +67,7 @@ require("translate").setup({
 					-- "http://127.0.0.1:10025",
 					"-t",
 					"zh-CN",
+                    -- you can filter translate source here
 					trans_source,
 				}
 			end,
@@ -76,11 +77,6 @@ require("translate").setup({
 			-- how to output translate result
 			-- float_win | notify | clipboard | insert
 			output = { "float_win" },
-			-- filter translate source
-			-- for example, you may need to filter `--` in a lua comment
-			filter = function(trans_source)
-				return trans_source
-			end,
 		},
 		{
 			cmd = "TransToEN",
