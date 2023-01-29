@@ -67,7 +67,7 @@ require("translate").setup({
 					-- "http://127.0.0.1:10025",
 					"-t",
 					"zh-CN",
-                    -- you can filter translate source here
+					-- you can filter translate source here
 					trans_source,
 				}
 			end,
