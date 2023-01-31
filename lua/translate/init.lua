@@ -1,4 +1,4 @@
-local job = require("translate.job")
+local core = require("niuiic-core")
 local static = require("translate.static")
 local input_mod = require("translate.input")
 local output_mod = require("translate.output")
@@ -14,11 +14,19 @@ local on_err = function(err, data)
 	fail_notify()
 end
 
+local job_handle
+local win_handle
+
 ---@param cmd string
 ---@param args Array<string>
 ---@param output Array<"float_win" | "notify" | "clipboard" | "insert">
 local trans = function(cmd, args, output)
+	if job_handle ~= nil and job_handle.running() == true then
+		job_handle.terminate()
+	end
+
 	local cursor_pos = vim.api.nvim_win_get_cursor(0)
+	local winnr = vim.api.nvim_get_current_win()
 
 	local on_exit = function(err, data)
 		if err ~= nil or data == nil or data == "" then
@@ -32,7 +40,7 @@ local trans = function(cmd, args, output)
 		data = string.gsub(data, "\n", "")
 		for _, value in ipairs(output) do
 			if value == "float_win" then
-				output_mod.output_in_float_win(data, pos)
+				win_handle = output_mod.output_in_float_win(data, winnr, pos)
 			elseif value == "notify" then
 				output_mod.output_notify(data)
 			elseif value == "clipboard" then
@@ -43,8 +51,20 @@ local trans = function(cmd, args, output)
 		end
 	end
 
-	job.spawn(cmd, args, on_exit, on_err)
+	job_handle = core.job.spawn(cmd, args, {}, on_exit, on_err)
 end
+
+vim.api.nvim_create_autocmd("CursorMoved", {
+	pattern = "*",
+	callback = function()
+		if static.config.output.float.close_on_cursor_move and win_handle ~= nil and win_handle.win_opening() then
+			local cur_win = vim.api.nvim_get_current_win()
+			if cur_win ~= win_handle.winnr then
+				win_handle.close_win()
+			end
+		end
+	end,
+})
 
 local create_user_command = function(config)
 	for _, value in ipairs(config.translate) do
@@ -80,7 +100,9 @@ local setup = function(new_config)
 	static.config = vim.tbl_deep_extend("force", static.config, new_config or {})
 	create_user_command(static.config)
 	vim.keymap.set("n", static.config.output.float.enter_key, function()
-		output_mod.enter_float_win()
+		if win_handle ~= nil then
+			vim.api.nvim_set_current_win(win_handle.winnr)
+		end
 	end, {})
 end
 

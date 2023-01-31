@@ -14,6 +14,10 @@ Highly configurable translation plugin for neovim.
 
 <img src="https://github.com/niuiic/assets/blob/main/translate.nvim/usage.gif" />
 
+## Dependencies
+
+- [niuiic/niuiic-core.nvim](https://github.com/niuiic/niuiic-core.nvim)
+
 ## Config
 
 - default config
