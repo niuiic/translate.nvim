@@ -1,10 +1,10 @@
-local config = require("translate.static").config
 local core = require("niuiic-core")
 
 ---@param content string
 ---@param winnr number
 ---@param pos {row: number, col: number}
 local output_in_float_win = function(content, winnr, pos)
+	local config = require("translate.static").config
 	return core.win.open_float_with_text(content, {
 		max_height = config.output.float.max_height,
 		max_width = config.output.float.max_width,
