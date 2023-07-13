@@ -3,34 +3,47 @@ local static = require("translate.static")
 local input_mod = require("translate.input")
 local output_mod = require("translate.output")
 
+local win_handle
+local running
+
 local fail_notify = function()
 	vim.notify("Translate failed", vim.log.levels.ERROR, {
 		title = "Translate",
 	})
 end
 
----@diagnostic disable-next-line:unused-local
-local on_err = function(err, data)
+local on_err = function()
+	if not running then
+		return
+	end
 	fail_notify()
+	running = false
 end
 
-local job_handle
-local win_handle
-
 ---@param cmd string
----@param args Array<string>
----@param output Array<"float_win" | "notify" | "clipboard" | "insert">
+---@param args string[]
+---@param output ("float_win" | "notify" | "clipboard" | "insert")[]
 local trans = function(cmd, args, output)
-	if job_handle ~= nil and job_handle.running() == true then
-		job_handle.terminate()
+	if running then
+		vim.notify("Previous translate task is running", vim.log.levels.WARN, {
+			title = "Translate",
+		})
+		return
 	end
+
+	running = true
 
 	local cursor_pos = vim.api.nvim_win_get_cursor(0)
 	local winnr = vim.api.nvim_get_current_win()
 
-	local on_exit = function(err, data)
+	local on_output = function(err, data)
+		if not running then
+			return
+		end
+
 		if err ~= nil or data == nil or data == "" then
 			fail_notify()
+			running = false
 			return
 		end
 		local pos = {
@@ -49,9 +62,10 @@ local trans = function(cmd, args, output)
 				output_mod.output_insert(data, pos)
 			end
 		end
+		running = false
 	end
 
-	job_handle = core.job.spawn(cmd, args, {}, on_exit, on_err)
+	core.job.spawn(cmd, args, {}, nil, on_err, on_output)
 end
 
 vim.api.nvim_create_autocmd("CursorMoved", {
