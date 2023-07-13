@@ -13,9 +13,6 @@ local fail_notify = function()
 end
 
 local on_err = function()
-	if not running then
-		return
-	end
 	fail_notify()
 	running = false
 end
@@ -37,10 +34,6 @@ local trans = function(cmd, args, output)
 	local winnr = vim.api.nvim_get_current_win()
 
 	local on_output = function(err, data)
-		if not running then
-			return
-		end
-
 		if err ~= nil or data == nil or data == "" then
 			fail_notify()
 			running = false
