@@ -16,7 +16,7 @@ Highly configurable translation plugin for neovim.
 
 ## Dependencies
 
-- [niuiic/niuiic-core.nvim](https://github.com/niuiic/niuiic-core.nvim)
+- [niuiic/core.nvim](https://github.com/niuiic/core.nvim)
 
 ## Config
 

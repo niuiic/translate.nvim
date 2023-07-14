@@ -1,4 +1,4 @@
-local core = require("niuiic-core")
+local core = require("core")
 local static = require("translate.static")
 local input_mod = require("translate.input")
 local output_mod = require("translate.output")

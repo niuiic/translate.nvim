@@ -1,4 +1,4 @@
-local core = require("niuiic-core")
+local core = require("core")
 
 local get_visual_selection = core.text.selection
 
