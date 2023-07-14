@@ -104,9 +104,9 @@ require("translate").setup({
 
 - keymap
 
-Notice: if input = "selection", `<c-u>` is required when set keymap.
+Notice: if input = "selection", source can be text selected in virtual mode(just `v`, not work in `V` and `C-v`) or expression under the cursor in normal mode.
 
 ```lua
-vim.keymap.set("v", "<C-t>", ":<c-u>TransToZH<CR>", { silent = true })
+vim.keymap.set("v", "<C-t>", "<cmd>TransToZH<CR>", { silent = true })
 vim.keymap.set("n", "<space>T", "<cmd>TransToEN<CR>")
 ```
