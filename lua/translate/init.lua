@@ -79,7 +79,7 @@ local create_user_command = function(config)
 			vim.api.nvim_create_user_command(value.cmd, function()
 				local text = core.text.selection()
 				trans(value.command, value.args(text), value.output)
-			end, { range = true })
+			end, {})
 		elseif value.input == "input" then
 			vim.api.nvim_create_user_command(value.cmd, function()
 				input_mod.user_input(function(text)
