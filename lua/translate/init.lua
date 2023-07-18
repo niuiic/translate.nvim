@@ -76,6 +76,7 @@ local create_user_command = function(config)
 		if value.input == "selection" then
 			vim.api.nvim_create_user_command(value.cmd, function()
 				local text = core.text.selection()
+				core.text.cancel_selection()
 				trans(value.command, value.args(text), value.output)
 			end, {})
 		elseif value.input == "input" then
