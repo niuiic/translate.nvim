@@ -81,6 +81,11 @@ require("translate").setup({
 			-- how to output translate result
 			-- float_win | notify | clipboard | insert
 			output = { "float_win" },
+			-- format output
+			---@type fun(output: string): string
+			format = function(output)
+				return output
+			end,
 		},
 		{
 			cmd = "TransToEN",

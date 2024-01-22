@@ -21,7 +21,7 @@ end
 ---@param cmd string
 ---@param args string[]
 ---@param output ("float_win" | "notify" | "clipboard" | "insert")[]
-local trans = function(cmd, args, output)
+local trans = function(cmd, args, output, format)
 	if running then
 		job_handle.terminate()
 	end
@@ -42,6 +42,9 @@ local trans = function(cmd, args, output)
 			col = cursor_pos[2],
 		}
 		data = string.gsub(data, "\n", "")
+		if format then
+			data = format(data)
+		end
 		for _, value in ipairs(output) do
 			if value == "float_win" then
 				win_handle = output_mod.output_in_float_win(data, winnr, pos)
@@ -77,12 +80,12 @@ local create_user_command = function(config)
 			vim.api.nvim_create_user_command(value.cmd, function()
 				local text = core.text.selection()
 				core.text.cancel_selection()
-				trans(value.command, value.args(text), value.output)
+				trans(value.command, value.args(text), value.output, value.format)
 			end, {})
 		elseif value.input == "input" then
 			vim.api.nvim_create_user_command(value.cmd, function()
 				input_mod.user_input(function(text)
-					trans(value.command, value.args(text), value.output)
+					trans(value.command, value.args(text), value.output, value.format)
 				end)
 			end, {})
 		elseif value.input == "clipboard" then
@@ -94,7 +97,7 @@ local create_user_command = function(config)
 					})
 					return
 				end
-				trans(value.command, value.args(text), value.output)
+				trans(value.command, value.args(text), value.output, value.format)
 			end, {})
 		end
 	end
