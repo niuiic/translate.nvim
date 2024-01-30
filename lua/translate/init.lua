@@ -23,7 +23,7 @@ end
 ---@param output ("float_win" | "notify" | "clipboard" | "insert")[]
 local trans = function(cmd, args, output, format)
 	if running then
-		job_handle.terminate()
+		pcall(job_handle.terminate)
 	end
 
 	running = true
