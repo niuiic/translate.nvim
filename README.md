@@ -2,6 +2,8 @@
 
 Highly configurable translation plugin for neovim.
 
+[More neovim plugins](https://github.com/niuiic/awesome-neovim-plugins)
+
 ## Feature
 
 - multiple output
