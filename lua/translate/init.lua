@@ -1,118 +1,59 @@
-local core = require("core")
-local static = require("translate.static")
-local input_mod = require("translate.input")
-local output_mod = require("translate.output")
+local M = {
+	_input = require("translate.input"),
+	_output = require("translate.output"),
+}
 
-local win_handle
-local running
-local job_handle
+---@class translate.Options
+---@field input string
+---@field output string[]
+---@field get_command fun(input: string): string[]
+---@field get_opts (fun(input:string): vim.SystemOpts) | nil
+---@field resolve_result (fun(result: vim.SystemCompleted): string | nil) | nil
 
-local fail_notify = function()
-	vim.notify("Translate failed", vim.log.levels.ERROR, {
-		title = "Translate",
-	})
-end
+---@class translate.Context
+---@field bufnr number
+---@field winnr number
+---@field cursor_pos {lnum: number, col: number}
+---@field selected_area omega.Area
 
-local on_err = function()
-	fail_notify()
-	running = false
-end
-
----@param cmd string
----@param args string[]
----@param output ("float_win" | "notify" | "clipboard" | "insert")[]
-local trans = function(cmd, args, output, format)
-	if running then
-		pcall(job_handle.terminate)
+---@param options translate.Options
+function M.translate(options)
+	options.get_opts = options.get_opts or function() end
+	options.resolve_result = options.resolve_result or function(result)
+		return result.stdout
 	end
 
-	running = true
+	local context = {
+		bufnr = vim.api.nvim_get_current_buf(),
+		winnr = vim.api.nvim_get_current_win(),
+		cursor_pos = { lnum = vim.api.nvim_win_get_cursor(0)[1], col = vim.api.nvim_win_get_cursor(0)[2] },
+		selected_area = require("omega").get_selected_area(),
+	}
 
-	local cursor_pos = vim.api.nvim_win_get_cursor(0)
-	local winnr = vim.api.nvim_get_current_win()
-
-	local on_output = function(err, data)
-		if err ~= nil or data == nil or data == "" then
-			fail_notify()
-			running = false
-			return
+	M._input.get_input_method(options.input)(function(input)
+		if vim.fn.mode() ~= "n" then
+			require("omega").to_normal_mode()
 		end
-		local pos = {
-			row = cursor_pos[1],
-			col = cursor_pos[2],
-		}
-		data = string.gsub(data, "\n", "")
-		if format then
-			data = format(data)
-		end
-		for _, value in ipairs(output) do
-			if value == "float_win" then
-				win_handle = output_mod.output_in_float_win(data, winnr, pos)
-			elseif value == "notify" then
-				output_mod.output_notify(data)
-			elseif value == "clipboard" then
-				output_mod.output_to_clipboard(data)
-			elseif value == "insert" then
-				output_mod.output_insert(data, pos)
-			end
-		end
-		running = false
-	end
 
-	job_handle = core.job.spawn(cmd, args, {}, nil, on_err, on_output)
-end
-
-vim.api.nvim_create_autocmd("CursorMoved", {
-	pattern = "*",
-	callback = function()
-		if static.config.output.float.close_on_cursor_move and win_handle ~= nil and win_handle.win_opening() then
-			local cur_win = vim.api.nvim_get_current_win()
-			if cur_win ~= win_handle.winnr then
-				win_handle.close_win()
-			end
-		end
-	end,
-})
-
-local create_user_command = function(config)
-	for _, value in ipairs(config.translate) do
-		if value.input == "selection" then
-			vim.api.nvim_create_user_command(value.cmd, function()
-				local text = core.text.selection()
-				core.text.cancel_selection()
-				trans(value.command, value.args(text), value.output, value.format)
-			end, {})
-		elseif value.input == "input" then
-			vim.api.nvim_create_user_command(value.cmd, function()
-				input_mod.user_input(function(text)
-					trans(value.command, value.args(text), value.output, value.format)
-				end)
-			end, {})
-		elseif value.input == "clipboard" then
-			vim.api.nvim_create_user_command(value.cmd, function()
-				local text = input_mod.read_clipboard()
-				if text == nil then
-					vim.notify("no content in clipboard", vim.log.levels.ERROR, {
-						title = "Translate",
-					})
+		vim.system(
+			options.get_command(input),
+			options.get_opts(input),
+			vim.schedule_wrap(function(result)
+				local output = options.resolve_result(result)
+				if not output then
+					vim.notify("No output", vim.log.levels.WARN, { title = "Translate" })
 					return
 				end
-				trans(value.command, value.args(text), value.output, value.format)
-			end, {})
-		end
-	end
+				vim.iter(options.output)
+					:map(function(type)
+						return M._output.get_output_method(type)
+					end)
+					:each(function(output_method)
+						output_method(output, context)
+					end)
+			end)
+		)
+	end)
 end
 
-local setup = function(new_config)
-	static.config = vim.tbl_deep_extend("force", static.config, new_config or {})
-	create_user_command(static.config)
-	vim.keymap.set("n", static.config.output.float.enter_key, function()
-		if win_handle ~= nil then
-			vim.api.nvim_set_current_win(win_handle.winnr)
-		end
-	end, {})
-end
-
-return {
-	setup = setup,
-}
+return M
