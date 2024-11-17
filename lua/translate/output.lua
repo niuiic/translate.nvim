@@ -116,16 +116,20 @@ end
 
 -- % insert %
 function M._insert(output, context)
+	local line =
+		vim.api.nvim_buf_get_lines(context.bufnr, context.cursor_pos.lnum - 1, context.cursor_pos.lnum, false)[1]
+	local character = M._get_char_length_from_display_length(line, context.cursor_pos.col)
+
 	M._apply_text_edits({
 		{
 			range = {
 				start = {
 					line = context.cursor_pos.lnum - 1,
-					character = context.cursor_pos.col,
+					character = character,
 				},
 				["end"] = {
 					line = context.cursor_pos.lnum - 1,
-					character = context.cursor_pos.col,
+					character = character,
 				},
 			},
 			newText = output,
