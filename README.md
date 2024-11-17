@@ -34,7 +34,7 @@ local function trans_to_zh()
 		end,
         -- input | clipboard | selection
 		input = "selection",
-        -- notify | copy | insert | replace
+        -- open_float | notify | copy | insert | replace
 		output = { "open_float" },
 		resolve_result = function(result)
 			if result.code ~= 0 then
