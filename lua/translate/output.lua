@@ -11,8 +11,10 @@ end
 
 function M.close_float_wins()
 	for winnr, bufnr in pairs(M._float_wins) do
-		vim.api.nvim_buf_delete(bufnr, { force = true })
-		vim.api.nvim_win_close(winnr, true)
+		pcall(function()
+			vim.api.nvim_win_close(winnr, true)
+			vim.api.nvim_buf_delete(bufnr, { force = true })
+		end)
 		M._float_wins[winnr] = nil
 	end
 end
@@ -69,11 +71,12 @@ function M._get_win_options(output, context)
 	local max_line_length = 0
 	local overflow_line_count = 0
 	vim.iter(lines):each(function(line)
-		if string.len(line) > max_line_length then
-			max_line_length = string.len(line)
+		local line_length = vim.fn.strwidth(line)
+		if line_length > max_line_length then
+			max_line_length = line_length
 		end
-		if string.len(line) > max_win_width then
-			overflow_line_count = overflow_line_count + math.ceil(string.len(line) / max_win_width) - 1
+		if line_length > max_win_width then
+			overflow_line_count = overflow_line_count + math.ceil(line_length / max_win_width) - 1
 		end
 	end)
 
@@ -132,7 +135,7 @@ function M._replace(output, context)
 			range = {
 				start = {
 					line = context.selected_area.start_lnum - 1,
-					character = context.selected_area.start_col - 1,
+					character = context.selected_area.start_col,
 				},
 				["end"] = {
 					line = context.selected_area.end_lnum - 1,
