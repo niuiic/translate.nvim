@@ -1,5 +1,6 @@
 local M = {}
 
+-- % open_float %
 M._float_wins = {}
 
 function M._open_float(output, context)
@@ -71,7 +72,7 @@ function M._get_win_options(output, context)
 	local max_line_length = 0
 	local overflow_line_count = 0
 	vim.iter(lines):each(function(line)
-		local line_length = vim.fn.strwidth(line)
+		local line_length = vim.fn.strdisplaywidth(line)
 		if line_length > max_line_length then
 			max_line_length = line_length
 		end
@@ -103,14 +104,17 @@ function M._get_win_options(output, context)
 	}
 end
 
+-- % notify %
 function M._notify(output)
 	vim.notify(output, vim.log.levels.INFO, { title = "Translate" })
 end
 
+-- % copy %
 function M._copy(output)
 	vim.fn.setreg("+", output)
 end
 
+-- % insert %
 function M._insert(output, context)
 	M._apply_text_edits({
 		{
@@ -129,25 +133,62 @@ function M._insert(output, context)
 	}, context.bufnr)
 end
 
+-- % replace %
 function M._replace(output, context)
+	local start_line = vim.api.nvim_buf_get_lines(
+		context.bufnr,
+		context.selected_area.start_lnum - 1,
+		context.selected_area.start_lnum,
+		false
+	)[1]
+	local start_character = M._get_char_length_from_display_length(start_line, context.selected_area.start_col)
+	local end_line = vim.api.nvim_buf_get_lines(
+		context.bufnr,
+		context.selected_area.end_lnum - 1,
+		context.selected_area.end_lnum,
+		false
+	)[1]
+	local end_character = M._get_char_length_from_display_length(end_line, context.selected_area.end_col)
+
 	local text_edits = {
 		{
 			range = {
 				start = {
 					line = context.selected_area.start_lnum - 1,
-					character = context.selected_area.start_col,
+					character = start_character,
 				},
 				["end"] = {
 					line = context.selected_area.end_lnum - 1,
-					character = context.selected_area.end_col,
+					character = end_character,
 				},
 			},
 			newText = output,
 		},
 	}
-	print(vim.inspect(text_edits))
 
 	M._apply_text_edits(text_edits, context.bufnr)
+end
+
+function M._get_char_length_from_display_length(str, display_length)
+	if display_length == 0 then
+		return 0
+	end
+
+	local chars = require("omega").get_chars(str)
+	local display_length_count = 0
+	for i, char in ipairs(chars) do
+		display_length_count = display_length_count + vim.fn.strdisplaywidth(char)
+
+		if display_length_count == display_length then
+			return i
+		end
+
+		if display_length_count > display_length then
+			return i - 1
+		end
+	end
+
+	return #chars
 end
 
 function M._apply_text_edits(text_edits, bufnr)
@@ -164,6 +205,7 @@ function M._get_offset_encoding()
 		end) or "utf-16"
 end
 
+-- % get_output_method %
 function M.get_output_method(type)
 	local output_methods = {
 		open_float = M._open_float,
